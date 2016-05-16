@@ -125,8 +125,7 @@
             <div class="row">
                 <div id="getUrlContainer" class="medium-12 columns input-group">
                     <input id="getUrl" type="text" class="input-group-field" onClick="this.select()"
-                           placeholder="No current url" readonly
-                           title="Get url">
+                           placeholder="No current url" readonly>
                     <div class="input-group-button">
                         <a id="download" class="disabled button"
                            title="Download content data as JSON">
@@ -209,7 +208,7 @@
     };
 
     var updateDownloadUrl = function(id, url, data) {
-        $("#getUrl").val(url);
+        $("#getUrl").val(url).attr("title", url);
         var anchor = $("#download");
         var windowUrl = window.URL || window.webkitURL;
         var blob = new Blob([JSON.stringify(data, null, 2)], {type : 'application/json'});

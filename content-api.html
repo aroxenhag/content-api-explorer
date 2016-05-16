@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset=utf-8/>
+    <title>Content API Explorer</title>
+    <link rel="stylesheet" type="text/css" media="screen"
+          href="https://cdnjs.cloudflare.com/ajax/libs/foundation/6.2.1/foundation-flex.css"/>
+    <link rel="stylesheet" type="text/css" media="screen"
+          href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.2/css/font-awesome.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.14.2/codemirror.min.css">
+    <script src="https://code.jquery.com/jquery-2.2.3.min.js"
+            integrity="sha256-a23g1Nt4dtEYOj7bR+vTu7+T8VP13humZFBJNIYoEJo=" crossorigin="anonymous"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/foundation/6.2.1/foundation.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.14.2/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.14.2/addon/display/placeholder.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.14.2/mode/javascript/javascript.min.js"></script>
+    <style>
+        body {
+        padding-top: 20px;
+        }
+        .CodeMirror {
+        height: auto;
+        margin-bottom: 20px;
+        }
+        .CodeMirror pre.CodeMirror-placeholder {
+        color: #999;
+        }
+    </style>
+</head>
+<body>
+<form>
+    <div class="row">
+        <div class="medium-4 small-12 columns">
+            <div class="row">
+                <div class="medium-6 small-12 columns">
+                    <input id="username" type="text" placeholder="Username" value="sysadmin" title="Username">
+                </div>
+                <div class="medium-6 small-12 columns">
+                    <input id="password" type="password" placeholder="Password" value="sysadmin" title="Password">
+                </div>
+            </div>
+            <div class="row">
+                <div class="medium-12 columns input-group">
+                    <div class="input-group-button">
+                        <button id="authenticate" type="button" class="button" disabled
+                                title="Aquire authentication token">
+                            Authenticate
+                        </button>
+                    </div>
+                    <input id="token" type="text" class="input-group-field" placeholder="No current token" readonly
+                           title="Authentication token">
+                </div>
+            </div>
+            <div class="row">
+                <div class="medium-4 columns">
+                    <select id="idType" title="Content id type">
+                        <option value="contentid">Content id</option>
+                        <option value="externalid">External id</option>
+                    </select>
+                </div>
+                <div class="medium-8 columns">
+                    <input id="contentId" type="text"
+                           placeholder="policy:1.116, PolopolyPost.d"
+                           title="Content id or external id">
+                </div>
+            </div>
+            <div class="row">
+                <div class="medium-12 columns expanded button-group">
+                    <button id="get" disabled type="button" class="button" title="Get content">GET</button>
+                    <button id="put" disabled type="button" class="button"
+                            title="Update content with JSON data below">
+                        PUT
+                    </button>
+                </div>
+            </div>
+            <div class="row">
+                <div class="medium-12 columns">
+                    <input id="etag" title="ETag" type="text" placeholder="No current ETag" readonly>
+                </div>
+            </div>
+            <div class="row">
+                <div class="medium-12 columns">
+                    <button id="post" disabled type="button" class="expanded button"
+                            title="Create a new content from JSON data below">
+                        POST (as new content)
+                    </button>
+                </div>
+            </div>
+            <div class="row">
+                <div class="medium-12 columns">
+                    <div id="alert" class="alert callout" style="display: none" data-closable>
+                        <p></p>
+                        <button class="close-button" aria-label="Dismiss alert" type="button" data-close>
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <fieldset id="aspectsContainer" style="display: none" class="medium-12 columns">
+                    <legend>Aspects</legend>
+                    <div class="row">
+                        <div class="medium-12 columns expanded button-group">
+                            <button id="selectAllAspects" type="button"
+                                    class="expanded button"><i
+                                    class="fa fa-check-square-o" aria-hidden="true"></i> Select all
+                            </button>
+                            <button id="deselectAllAspects" type="button"
+                                    class="expanded button"><i
+                                    class="fa fa-square-o" aria-hidden="true"></i> Deselect all
+                            </button>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="medium-12 columns">
+                            <div id="aspects">
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+        </div>
+        <div class="medium-8 small-12 columns">
+            <div class="row">
+                <div id="getUrlContainer" class="medium-12 columns input-group">
+                    <input id="getUrl" type="text" class="input-group-field" placeholder="No current url" readonly
+                           title="Get url">
+                    <div class="input-group-button">
+                        <button id="download" type="button" class="button" disabled
+                                title="Download content data as json">
+                            Download
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="medium-12 columns">
+                    <textarea id="data" placeholder="No current content data"></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<script>
+    var baseUrl = window.location.protocol + "//" + window.location.host;
+
+    var cm = CodeMirror.fromTextArea($("#data").get(0), {name: "javascript", json: true, lineNumbers: true});
+
+    $("#contentId").keydown(function(event) {
+      // DEBUG
+      var keyCode = (event.which ? event.which : event.keyCode);
+      if ((keyCode == 10 || keyCode == 13) && event.ctrlKey) {
+        $("#contentId").val("policy:1.116").change();
+        return;
+      }
+      // END DEBUG
+
+      if (event.which == 13) {
+        $("#get").click();
+        return;
+      }
+    });
+
+    var updateActionButtons = function() {
+      $("#get").prop("disabled", !$("#contentId").val() || !$("#token").val());
+      $("#put").prop("disabled", !$("#contentId").val() || !$("#token").val() || !$("#etag").val() || !cm.getDoc().getValue());
+      $("#post").prop("disabled", !$("#token").val() || !cm.getDoc().getValue());
+    };
+
+    var updateAuthenticationButton = function() {
+      $("#authenticate").prop("disabled", !$("#username").val() || !$("#password").val());
+    };
+
+    $("#username, #password").on("input", updateAuthenticationButton);
+    updateAuthenticationButton();
+
+    $("#contentId").on("input", updateActionButtons).change(updateActionButtons);
+    $("#token").change(updateActionButtons);
+    $("#etag").change(updateActionButtons);
+    cm.on("change", updateActionButtons);
+    updateActionButtons();
+
+    $("#authenticate").click(function() {
+      var body = {
+        username: $("#username").val(),
+        password: $("#password").val()
+      };
+      $.ajax({
+        type: 'POST',
+        url: baseUrl + "/onecms/security/token",
+        data: JSON.stringify(body),
+        headers: {
+            "Content-Type":"application/json; charset=utf-8"
+        }
+      }).done(function(data) {
+            $("#token").val(data.token).change();
+      });
+    });
+
+    var showAlert = function(text) {
+        var alertElement = $("#alert");
+        alertElement.show().find("p").text(text);
+    };
+
+    var hideAlert = function() {
+        $("#alert").css("display", "none");
+    };
+
+    var setGetUrl = function(url) {
+        $("#getUrl").val(url);
+        $("#download").prop("disabled", false);
+    };
+
+    var updateFromResponse = function(data, response) {
+        $("#etag").val(response.getResponseHeader("ETag")).change();
+
+        cm.getDoc().setValue(JSON.stringify(data, null, 2));
+        var i = 0;
+        var aspects = $("#aspects");
+        aspects.empty();
+        for (var aspect in data.aspects) {
+          aspects.append("<div><input data-aspect-name='" + aspect + "' checked id='aspect" + i + "' type='checkbox'><label for='aspect" + i + "'>" + aspect + "</label></div>");
+          i++;
+        }
+
+        var updateAspects = function() {
+          var tmpData = JSON.parse(JSON.stringify(data));
+          aspects.find("input").each(function() {
+            if (!$(this).prop("checked")) {
+              delete tmpData.aspects[$(this).data("aspect-name")];
+            }
+          });
+          cm.getDoc().setValue(JSON.stringify(tmpData, null, 2));
+        }
+
+        aspects.find("input").change(updateAspects);
+
+        $("#aspectsContainer").show();
+
+        $("#selectAllAspects").click(function() {
+          $("#aspects input").prop("checked", true);
+          updateAspects();
+        });
+        $("#deselectAllAspects").click(function() {
+          $("#aspects input").prop("checked", false);
+          updateAspects();
+        });
+    };
+
+    $("#get").click(function() {
+      hideAlert();
+      var token = $("#token").val();
+      if (!token) {
+        alert("Must authenticate first.");
+        return;
+      }
+      var contentId = $("#contentId").val();
+      if (!contentId) {
+        alert("Must specify content id.");
+        return;
+      }
+      var idType = $("#idType").val();
+      var url = baseUrl + "/onecms/content/" + idType + "/" + contentId;
+      $.getJSON({
+        type: 'GET',
+        url: url,
+        headers: {
+            "X-Auth-Token": token
+        }
+      }).success(function(data, status, response) {
+        setGetUrl(url);
+        updateFromResponse(data, response);
+      }).fail(function(data, status, response) {
+        showAlert("Get failed: " + response);
+      });
+    });
+
+    $("#put").click(function() {
+      hideAlert();
+      var token = $("#token").val();
+      if (!token) {
+        alert("Must authenticate first.");
+        return;
+      }
+      var contentId = $("#contentId").val();
+      if (!contentId) {
+        alert("Must specify content id.");
+        return;
+      }
+      var idType = $("#idType").val();
+      var url = baseUrl + "/onecms/content/" + idType + "/" + contentId;
+      $.ajax({
+        type: 'PUT',
+        url: url,
+        data: cm.getDoc().getValue(),
+        headers: {
+            "X-Auth-Token": token,
+            "Content-Type":"application/json; charset=utf-8",
+            "If-Match":$("#etag").val()
+        }
+      }).success(function(data, status, response) {
+        setGetUrl(url);
+        updateFromResponse(data, response);
+      }).fail(function(data, status, response) {
+        showAlert("Update failed: " + response);
+      });
+    });
+
+    $("#post").click(function() {
+      hideAlert();
+      var token = $("#token").val();
+      if (!token) {
+        alert("Must authenticate first.");
+        return;
+      }
+      $.ajax({
+        type: 'POST',
+        url: baseUrl + "/onecms/content",
+        data: cm.getDoc().getValue(),
+        headers: {
+            "X-Auth-Token": token,
+            "Content-Type":"application/json; charset=utf-8"
+        }
+      }).success(function(data, status, response) {
+        updateFromResponse(data, response);
+        $("#contentId").val(data.id);
+      }).fail(function(data, status, response) {
+        showAlert("Creation failed: " + response);
+      });
+    });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</script>
+</body>
+</html>

@@ -124,13 +124,13 @@
         <div class="medium-8 small-12 columns">
             <div class="row">
                 <div id="getUrlContainer" class="medium-12 columns input-group">
-                    <input id="getUrl" type="text" class="input-group-field" placeholder="No current url" readonly
+                    <input id="getUrl" type="text" class="input-group-field" onClick="this.select()" placeholder="No current url" readonly
                            title="Get url">
                     <div class="input-group-button">
-                        <button id="download" type="button" class="button" disabled
-                                title="Download content data as json">
+                        <a id="download" class="disabled button"
+                                title="Download content data as JSON">
                             Download
-                        </button>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -207,9 +207,15 @@
         $("#alert").css("display", "none");
     };
 
-    var setGetUrl = function(url) {
+    var updateDownloadUrl = function(id, url, data) {
         $("#getUrl").val(url);
-        $("#download").prop("disabled", false);
+        var anchor = $("#download");
+        var windowUrl = window.URL || window.webkitURL;
+        var blob = new Blob([JSON.stringify(data, null, 2)], {type : 'application/json'});
+        var url = windowUrl.createObjectURL(blob);
+        anchor.prop('href', url);
+        anchor.prop('download', id + ".json");
+        anchor.removeClass("disabled");
     };
 
     var updateFromResponse = function(data, response) {
@@ -269,7 +275,7 @@
             "X-Auth-Token": token
         }
       }).success(function(data, status, response) {
-        setGetUrl(url);
+        updateDownloadUrl(contentId, url, data);
         updateFromResponse(data, response);
       }).fail(function(data, status, response) {
         showAlert("Get failed: " + response);
@@ -300,7 +306,7 @@
             "If-Match":$("#etag").val()
         }
       }).success(function(data, status, response) {
-        setGetUrl(url);
+        updateDownloadUrl(contentId, url, data);
         updateFromResponse(data, response);
       }).fail(function(data, status, response) {
         showAlert("Update failed: " + response);

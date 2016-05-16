@@ -124,11 +124,12 @@
         <div class="medium-8 small-12 columns">
             <div class="row">
                 <div id="getUrlContainer" class="medium-12 columns input-group">
-                    <input id="getUrl" type="text" class="input-group-field" onClick="this.select()" placeholder="No current url" readonly
+                    <input id="getUrl" type="text" class="input-group-field" onClick="this.select()"
+                           placeholder="No current url" readonly
                            title="Get url">
                     <div class="input-group-button">
                         <a id="download" class="disabled button"
-                                title="Download content data as JSON">
+                           title="Download content data as JSON">
                             Download
                         </a>
                     </div>
@@ -329,41 +330,16 @@
             "Content-Type":"application/json; charset=utf-8"
         }
       }).success(function(data, status, response) {
+        var location = response.getResponseHeader("Location");
+        var contentId = location.substring(location.lastIndexOf("/") + 1, location.lastIndexOf(":"));
+        var url = baseUrl + location.substring(0, location.lastIndexOf(":"));
+        updateDownloadUrl(contentId, url, data);
         updateFromResponse(data, response);
         $("#contentId").val(data.id);
       }).fail(function(data, status, response) {
         showAlert("Creation failed: " + response);
       });
     });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 </script>
 </body>
 </html>

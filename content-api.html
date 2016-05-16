@@ -115,7 +115,7 @@
             <div class="row">
                 <div class="medium-12 columns">
                     <div id="alert" class="alert callout" style="display: none" data-closable>
-                        <p></p>
+                        <div class="message"></div>
                         <button class="close-button" aria-label="Dismiss alert" type="button" data-close>
                             <span aria-hidden="true">&times;</span>
                         </button>
@@ -148,13 +148,13 @@
     var cm = CodeMirror.fromTextArea($("#data").get(0), {name: "javascript", json: true, lineNumbers: true});
 
     $("#contentId").keydown(function(event) {
-      // DEBUG
+      // DEV SHORTCUT
       var keyCode = (event.which ? event.which : event.keyCode);
       if ((keyCode == 10 || keyCode == 13) && event.ctrlKey) {
         $("#contentId").val("policy:1.116").change();
         return;
       }
-      // END DEBUG
+      // END DEV SHORTCUT
 
       if (event.which == 13) {
         $("#get").click();
@@ -198,9 +198,9 @@
       });
     });
 
-    var showAlert = function(text) {
+    var showAlert = function(message, details) {
         var alertElement = $("#alert");
-        alertElement.show().find("p").text(text);
+        alertElement.show().find(".message").html("<h4>" + message + "</h4>" + "<pre>" + JSON.stringify(details, null, 2) + "</pre>");
     };
 
     var hideAlert = function() {
@@ -278,7 +278,7 @@
         updateDownloadUrl(contentId, url, data);
         updateFromResponse(data, response);
       }).fail(function(data, status, response) {
-        showAlert("Get failed: " + response);
+        showAlert("Get failed", data.responseJSON);
       });
     });
 
@@ -309,7 +309,7 @@
         updateDownloadUrl(contentId, url, data);
         updateFromResponse(data, response);
       }).fail(function(data, status, response) {
-        showAlert("Update failed: " + response);
+        showAlert("Update failed", data.responseJSON);
       });
     });
 
@@ -336,7 +336,7 @@
         updateFromResponse(data, response);
         $("#contentId").val(data.id);
       }).fail(function(data, status, response) {
-        showAlert("Creation failed: " + response);
+        showAlert("Creation failed", data.responseJSON);
       });
     });
 </script>

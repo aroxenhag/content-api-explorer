@@ -147,18 +147,24 @@
 
     var cm = CodeMirror.fromTextArea($("#data").get(0), {name: "javascript", json: true, lineNumbers: true});
 
-    $("#contentId").keydown(function(event) {
-      // DEV SHORTCUT
+
+    // DEV SHORTCUT
+    $(document).keydown(function(event) {
       var keyCode = (event.which ? event.which : event.keyCode);
       if ((keyCode == 10 || keyCode == 13) && event.ctrlKey) {
-        $("#contentId").val("policy:1.116").change();
-        return;
-      }
-      // END DEV SHORTCUT
 
+        $("#token").on("change", function() {
+            $("#contentId").val("policy:1.116").change();
+            $("#get").click();
+        });
+        $("#authenticate").click();
+      }
+    });
+    // END DEV SHORTCUT
+
+    $("#contentId").keydown(function(event) {
       if (event.which == 13) {
         $("#get").click();
-        return;
       }
     });
 
@@ -277,6 +283,9 @@
       }).success(function(data, status, response) {
         updateDownloadUrl(contentId, url, data);
         updateFromResponse(data, response);
+
+
+
       }).fail(function(data, status, response) {
         showAlert("Get failed", data.responseJSON);
       });

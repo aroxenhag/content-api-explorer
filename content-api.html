@@ -15,6 +15,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.14.2/codemirror.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.14.2/addon/display/placeholder.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.14.2/mode/javascript/javascript.min.js"></script>
+
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jsondiffpatch/0.1.43/jsondiffpatch.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jsondiffpatch/0.1.43/jsondiffpatch-formatters.min.js"></script>
+
     <style>
         body {
         padding-top: 20px;
@@ -25,6 +29,232 @@
         }
         .CodeMirror pre.CodeMirror-placeholder {
         color: #999;
+        }
+
+        #data-container {
+        position: relative;
+        padding-bottom: 20px;
+        }
+        #data-container.collapsed {
+        height: 120px;
+        overflow: hidden;
+        position: relative;
+        }
+        .data-container-overlay {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        display: none;
+        text-align: center;
+        background-color: rgba(255, 255, 255, .5);
+        z-index: 100;
+        padding-top: 20px;
+        }
+        #data-container.collapsed .data-container-overlay {
+        display: block;
+        }
+        #diff-container {
+        padding-top: 40px;
+        }
+
+
+        .jsondiffpatch-delta {
+        font-family: 'Bitstream Vera Sans Mono', 'DejaVu Sans Mono', Monaco, Courier, monospace;
+        font-size: 12px;
+        margin: 0;
+        padding: 0 0 0 12px;
+        display: inline-block;
+        }
+        .jsondiffpatch-delta pre {
+        font-family: 'Bitstream Vera Sans Mono', 'DejaVu Sans Mono', Monaco, Courier, monospace;
+        font-size: 12px;
+        margin: 0;
+        padding: 0;
+        display: inline-block;
+        }
+        ul.jsondiffpatch-delta {
+        list-style-type: none;
+        padding: 0 0 0 20px;
+        margin: 0;
+        }
+        .jsondiffpatch-delta ul {
+        list-style-type: none;
+        padding: 0 0 0 20px;
+        margin: 0;
+        }
+        .jsondiffpatch-added .jsondiffpatch-property-name,
+        .jsondiffpatch-added .jsondiffpatch-value pre,
+        .jsondiffpatch-modified .jsondiffpatch-right-value pre,
+        .jsondiffpatch-textdiff-added {
+        background: #bbffbb;
+        }
+        .jsondiffpatch-deleted .jsondiffpatch-property-name,
+        .jsondiffpatch-deleted pre,
+        .jsondiffpatch-modified .jsondiffpatch-left-value pre,
+        .jsondiffpatch-textdiff-deleted {
+        background: #ffbbbb;
+        text-decoration: line-through;
+        }
+        .jsondiffpatch-unchanged,
+        .jsondiffpatch-movedestination {
+        color: gray;
+        }
+        .jsondiffpatch-unchanged,
+        .jsondiffpatch-movedestination > .jsondiffpatch-value {
+        transition: all 0.5s;
+        -webkit-transition: all 0.5s;
+        overflow-y: hidden;
+        }
+        .jsondiffpatch-unchanged-showing .jsondiffpatch-unchanged,
+        .jsondiffpatch-unchanged-showing .jsondiffpatch-movedestination > .jsondiffpatch-value {
+        max-height: 100px;
+        }
+        .jsondiffpatch-unchanged-hidden .jsondiffpatch-unchanged,
+        .jsondiffpatch-unchanged-hidden .jsondiffpatch-movedestination > .jsondiffpatch-value {
+        max-height: 0;
+        }
+        .jsondiffpatch-unchanged-hiding .jsondiffpatch-movedestination > .jsondiffpatch-value,
+        .jsondiffpatch-unchanged-hidden .jsondiffpatch-movedestination > .jsondiffpatch-value {
+        display: block;
+        }
+        .jsondiffpatch-unchanged-visible .jsondiffpatch-unchanged,
+        .jsondiffpatch-unchanged-visible .jsondiffpatch-movedestination > .jsondiffpatch-value {
+        max-height: 100px;
+        }
+        .jsondiffpatch-unchanged-hiding .jsondiffpatch-unchanged,
+        .jsondiffpatch-unchanged-hiding .jsondiffpatch-movedestination > .jsondiffpatch-value {
+        max-height: 0;
+        }
+        .jsondiffpatch-unchanged-showing .jsondiffpatch-arrow,
+        .jsondiffpatch-unchanged-hiding .jsondiffpatch-arrow {
+        display: none;
+        }
+        .jsondiffpatch-value {
+        display: inline-block;
+        }
+        .jsondiffpatch-property-name {
+        display: inline-block;
+        padding-right: 5px;
+        vertical-align: top;
+        }
+        .jsondiffpatch-property-name:after {
+        content: ': ';
+        }
+        .jsondiffpatch-child-node-type-array > .jsondiffpatch-property-name:after {
+        content: ': [';
+        }
+        .jsondiffpatch-child-node-type-array:after {
+        content: '],';
+        }
+        div.jsondiffpatch-child-node-type-array:before {
+        content: '[';
+        }
+        div.jsondiffpatch-child-node-type-array:after {
+        content: ']';
+        }
+        .jsondiffpatch-child-node-type-object > .jsondiffpatch-property-name:after {
+        content: ': {';
+        }
+        .jsondiffpatch-child-node-type-object:after {
+        content: '},';
+        }
+        div.jsondiffpatch-child-node-type-object:before {
+        content: '{';
+        }
+        div.jsondiffpatch-child-node-type-object:after {
+        content: '}';
+        }
+        .jsondiffpatch-value pre:after {
+        content: ',';
+        }
+        li:last-child > .jsondiffpatch-value pre:after,
+        .jsondiffpatch-modified > .jsondiffpatch-left-value pre:after {
+        content: '';
+        }
+        .jsondiffpatch-modified .jsondiffpatch-value {
+        display: inline-block;
+        }
+        .jsondiffpatch-modified .jsondiffpatch-right-value {
+        margin-left: 5px;
+        }
+        .jsondiffpatch-moved .jsondiffpatch-value {
+        display: none;
+        }
+        .jsondiffpatch-moved .jsondiffpatch-moved-destination {
+        display: inline-block;
+        background: #ffffbb;
+        color: #888;
+        }
+        .jsondiffpatch-moved .jsondiffpatch-moved-destination:before {
+        content: ' => ';
+        }
+        ul.jsondiffpatch-textdiff {
+        padding: 0;
+        }
+        .jsondiffpatch-textdiff-location {
+        color: #bbb;
+        display: inline-block;
+        min-width: 60px;
+        }
+        .jsondiffpatch-textdiff-line {
+        display: inline-block;
+        }
+        .jsondiffpatch-textdiff-line-number:after {
+        content: ',';
+        }
+        .jsondiffpatch-error {
+        background: red;
+        color: white;
+        font-weight: bold;
+        }
+
+
+
+        .jsondiffpatch-annotated-delta {
+        font-family: 'Bitstream Vera Sans Mono', 'DejaVu Sans Mono', Monaco, Courier, monospace;
+        font-size: 12px;
+        margin: 0;
+        padding: 0 0 0 12px;
+        display: inline-block;
+        }
+        .jsondiffpatch-annotated-delta pre {
+        font-family: 'Bitstream Vera Sans Mono', 'DejaVu Sans Mono', Monaco, Courier, monospace;
+        font-size: 12px;
+        margin: 0;
+        padding: 0;
+        display: inline-block;
+        }
+        .jsondiffpatch-annotated-delta td {
+        margin: 0;
+        padding: 0;
+        }
+        .jsondiffpatch-annotated-delta td pre:hover {
+        font-weight: bold;
+        }
+        td.jsondiffpatch-delta-note {
+        font-style: italic;
+        padding-left: 10px;
+        }
+        .jsondiffpatch-delta-note > div {
+        margin: 0;
+        padding: 0;
+        }
+        .jsondiffpatch-delta-note pre {
+        font-style: normal;
+        }
+        .jsondiffpatch-annotated-delta .jsondiffpatch-delta-note {
+        color: #777;
+        }
+        .jsondiffpatch-annotated-delta tr:hover {
+        background: #ffc;
+        }
+        .jsondiffpatch-annotated-delta tr:hover > td.jsondiffpatch-delta-note {
+        color: black;
+        }
+        .jsondiffpatch-error {
+        background: red;
+        color: white;
+        font-weight: bold;
         }
     </style>
 </head>
@@ -88,7 +318,7 @@
                 </div>
             </div>
             <div class="row">
-                <fieldset id="aspectsContainer" style="display: none" class="medium-12 columns">
+                <fieldset id="aspectsContainer" style="display: none" class="medium-12 columns fieldset">
                     <legend>Aspects</legend>
                     <div class="row">
                         <div class="medium-12 columns expanded button-group">
@@ -108,6 +338,16 @@
                             </div>
                         </div>
                     </div>
+                </fieldset>
+            </div>
+            <div class="row">
+                <fieldset id="historyContainer" style="display: none" class="medium-12 columns fieldset">
+                    <legend>History</legend>
+                    <button id="compare" disabled type="button" class="expanded button"
+                            title="Compare selected versions">
+                        Compare
+                    </button>
+                    <ol reversed id="history" class="history"></ol>
                 </fieldset>
             </div>
         </div>
@@ -135,8 +375,16 @@
                 </div>
             </div>
             <div class="row">
-                <div class="medium-12 columns">
+                <div id="data-container" class="medium-12 columns">
+                    <legend>Content data</legend>
+                    <a href="#" class="data-container-overlay">See all</a>
                     <textarea id="data" placeholder="No current content data"></textarea>
+                </div>
+            </div>
+            <div class="row">
+                <div id="diff-container" style="display: none;" class="medium-12 columns">
+                    <legend>Diff</legend>
+                    <div id="diff"></div>
                 </div>
             </div>
         </div>
@@ -260,6 +508,91 @@
         });
     };
 
+    var loadHistory = function(contentId, idType) {
+      $("#compare").off("click");
+      var historyUrl = baseUrl + "/onecms/content/" + idType + "/" + contentId + "/history";
+      var token = $("#token").val();
+      $.getJSON({
+        type: 'GET',
+        url: historyUrl,
+        headers: {
+            "X-Auth-Token": token
+        }
+      }).success(function(data, status, response) {
+
+        var i = 0;
+        var history = $("#history");
+        history.empty();
+        $.each(data.versions.reverse(), function() {
+          var version = this;
+          var date = new Date(version.creationTime);
+          history.append("<li><input data-contentid='" + version.version + "' id='version" + i + "' type='checkbox'><label for='version" + i + "'>" + "<span>" + date + "</span><br>" + "<pre>" + JSON.stringify(version, null, 2) + "</pre></label></li>");
+          i++;
+        });
+
+        history.find("input").click(function(event) {
+          if (history.find("input:checked").size() > 2) {
+            alert("You can only select two versions to compare.");
+            event.preventDefault();
+            return;
+          }
+        });
+
+        history.find("input").change(function(event) {
+          $("#compare").prop("disabled", history.find("input:checked").size() != 2);
+        });
+
+        $("#historyContainer").show();
+
+        $("#compare").click(function() {
+          var checkedInputs = history.find("input:checked");
+          var contentId1 = checkedInputs.first().data("contentid");
+          var contentId2 = checkedInputs.last().data("contentid");
+
+          var url1 = baseUrl + "/onecms/content/contentid/" + contentId1;
+          var url2 = baseUrl + "/onecms/content/contentid/" + contentId2;
+
+          $.getJSON({
+            type: 'GET',
+            url: url1,
+            headers: {
+                "X-Auth-Token": token
+            }
+          }).success(function(data, status, response) {
+            var content1 = data;
+
+              $.getJSON({
+                type: 'GET',
+                url: url2,
+                headers: {
+                    "X-Auth-Token": token
+                }
+              }).success(function(data, status, response) {
+                var content2 = data;
+
+                var delta = jsondiffpatch.diff(content2, content1);
+                $("#diff").html(jsondiffpatch.formatters.html.format(delta, content2));
+                $("#data-container").addClass("collapsed");
+                $(".data-container-overlay").click(function() {
+                  $("#data-container").removeClass("collapsed");
+                });
+                $("#diff-container").show();
+              }).fail(function(data, status, response) {
+                showAlert("Get failed", data.responseJSON);
+              });
+
+          }).fail(function(data, status, response) {
+            showAlert("Get failed", data.responseJSON);
+          });
+
+
+        });
+
+      }).fail(function(data, status, response) {
+        showAlert("Get history failed", data.responseJSON);
+      });
+    };
+
     $("#get").click(function() {
       hideAlert();
       var token = $("#token").val();
@@ -284,7 +617,7 @@
         updateDownloadUrl(contentId, url, data);
         updateFromResponse(data, response);
 
-
+        loadHistory(contentId, idType);
 
       }).fail(function(data, status, response) {
         showAlert("Get failed", data.responseJSON);
@@ -317,6 +650,7 @@
       }).success(function(data, status, response) {
         updateDownloadUrl(contentId, url, data);
         updateFromResponse(data, response);
+        loadHistory(contentId, idType);
       }).fail(function(data, status, response) {
         showAlert("Update failed", data.responseJSON);
       });
@@ -344,10 +678,15 @@
         updateDownloadUrl(contentId, url, data);
         updateFromResponse(data, response);
         $("#contentId").val(data.id);
+        loadHistory(contentId, "contentid");
       }).fail(function(data, status, response) {
         showAlert("Creation failed", data.responseJSON);
       });
     });
+
+
+
+
 </script>
 </body>
 </html>

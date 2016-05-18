@@ -442,6 +442,15 @@
     cm.on("change", updateActionButtons);
     updateActionButtons();
 
+    var showAlert = function(message, details) {
+        var alertElement = $("#alert");
+        alertElement.show().find(".message").html("<h4>" + message + "</h4>" + "<pre>" + JSON.stringify(details, null, 2) + "</pre>");
+    };
+
+    var hideAlert = function() {
+        $("#alert").css("display", "none");
+    };
+
     $("#authenticate").click(function() {
       var body = {
         username: $("#username").val(),
@@ -454,19 +463,12 @@
         headers: {
             "Content-Type":"application/json; charset=utf-8"
         }
-      }).done(function(data) {
+      }).success(function(data) {
             $("#token").val(data.token).change();
+      }).fail(function(data) {
+            showAlert("Authentication failed", data.responseJSON);
       });
     });
-
-    var showAlert = function(message, details) {
-        var alertElement = $("#alert");
-        alertElement.show().find(".message").html("<h4>" + message + "</h4>" + "<pre>" + JSON.stringify(details, null, 2) + "</pre>");
-    };
-
-    var hideAlert = function() {
-        $("#alert").css("display", "none");
-    };
 
     var updateDownloadUrl = function(id, url, data) {
         $("#getUrl").val(url).attr("title", url);

@@ -506,11 +506,14 @@
           $("#aspects input").prop("checked", false);
           updateAspects();
         });
+        $("#data-container").removeClass("collapsed");
+        $("#diff-container").hide();
     };
 
-    var loadHistory = function(contentId, idType) {
+    var loadHistory = function(contentId) {
+      $("#historyContainer").hide();
       $("#compare").off("click");
-      var historyUrl = baseUrl + "/onecms/content/" + idType + "/" + contentId + "/history";
+      var historyUrl = baseUrl + "/onecms/content/contentid/" + contentId + "/history";
       var token = $("#token").val();
       $.getJSON({
         type: 'GET',
@@ -617,7 +620,7 @@
         updateDownloadUrl(contentId, url, data);
         updateFromResponse(data, response);
 
-        loadHistory(contentId, idType);
+        loadHistory(data.id);
 
       }).fail(function(data, status, response) {
         showAlert("Get failed", data.responseJSON);
@@ -650,7 +653,7 @@
       }).success(function(data, status, response) {
         updateDownloadUrl(contentId, url, data);
         updateFromResponse(data, response);
-        loadHistory(contentId, idType);
+        loadHistory(data.id);
       }).fail(function(data, status, response) {
         showAlert("Update failed", data.responseJSON);
       });
@@ -678,7 +681,7 @@
         updateDownloadUrl(contentId, url, data);
         updateFromResponse(data, response);
         $("#contentId").val(data.id);
-        loadHistory(contentId, "contentid");
+        loadHistory(data.id);
       }).fail(function(data, status, response) {
         showAlert("Creation failed", data.responseJSON);
       });

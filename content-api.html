@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.14.2/codemirror.min.css">
     <script src="https://code.jquery.com/jquery-2.2.3.min.js"
             integrity="sha256-a23g1Nt4dtEYOj7bR+vTu7+T8VP13humZFBJNIYoEJo=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/foundation/6.2.1/foundation.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.14.2/codemirror.min.js"></script>
@@ -290,6 +291,17 @@
                 </div>
             </div>
             <div class="row">
+                <fieldset id="recentContainer" class="medium-12 columns fieldset">
+                    <legend>Recent content</legend>
+                    <p class="empty-message subheader text-center">No recent content</p>
+                    <ul id="recent" class="no-bullet"></ul>
+                    <button id="clearRecent" disabled type="button" class="expanded button"
+                            title="Clear list of recent content">
+                        Clear recent
+                    </button>
+                </fieldset>
+            </div>
+            <div class="row">
                 <div class="medium-4 columns">
                     <select id="idType" title="Content id type">
                         <option value="contentid">Content id</option>
@@ -402,16 +414,23 @@
 
     var cm = CodeMirror.fromTextArea($("#data").get(0), {name: "javascript", json: true, lineNumbers: true});
 
+    var getContent = function(idType, contentId) {
+        $("#idType").val(idType);
+        $("#contentId").val(contentId).change();
+        $("#get").click();
+    };
 
     // DEV SHORTCUT
     $(document).keydown(function(event) {
       var keyCode = (event.which ? event.which : event.keyCode);
       if ((keyCode == 10 || keyCode == 13) && event.ctrlKey) {
 
-        $("#token").on("change", function() {
-            $("#contentId").val("policy:1.116").change();
-            $("#get").click();
-        });
+        var tokenElement = $("#token");
+        var fetchContent = function() {
+            tokenElement.off("change", fetchContent);
+            getContent("contentid", "policy:1.116");
+        };
+        tokenElement.on("change", fetchContent);
         $("#authenticate").click();
       }
     });
@@ -434,13 +453,67 @@
     };
 
     $("#username, #password").on("input", updateAuthenticationButton);
-    updateAuthenticationButton();
 
     $("#contentId").on("input", updateActionButtons).change(updateActionButtons);
     $("#token").change(updateActionButtons);
     $("#etag").change(updateActionButtons);
     cm.on("change", updateActionButtons);
-    updateActionButtons();
+
+    var RECENT_COOKIE_NAME = "content-api-explorer-recent";
+    var getRecentContent = function() {
+        var recentContentCookie = $.cookie(RECENT_COOKIE_NAME);
+        var recentContent = recentContentCookie ? JSON.parse(recentContentCookie) : [];
+        return recentContent;
+    };
+
+    var storeRecentContent = function(recentContent) {
+        $.cookie(RECENT_COOKIE_NAME, JSON.stringify(recentContent));
+    };
+
+    var putRecent = function(idType, contentId) {
+        var newRecentId = {"type": idType, "id": contentId};
+        var recentContent = getRecentContent();
+
+        // TODO: Ugly indexOf check. Didn't get either native or jQuery version to work
+        var index = -1;
+        var i = 0;
+        $.each(recentContent, function() {
+          if (this.id == contentId) {
+            index = i;
+          }
+          i++;
+        });
+
+        if (index > -1) {
+          recentContent.splice(index, 1);
+        }
+
+        recentContent.unshift(newRecentId);
+        storeRecentContent(recentContent);
+    };
+
+    var reloadRecent = function() {
+        var recent = $("#recent");
+        recent.empty();
+        var recentContent = getRecentContent();
+        $.each(recentContent, function() {
+          var entry = this;
+          recent.append("<li><a href='#' data-id='" + entry.id + "' data-type='" + entry.type + "'>" + entry.id + "</a></li>");
+        });
+        recent.find("a").click(function(e) {
+          var link = $(this);
+          getContent(link.data("type"), link.data("id"));
+          e.preventDefault();
+          return;
+        });
+        $("#clearRecent").prop("disabled", recentContent.length < 1);
+        $("#recentContainer .empty-message").toggle(recentContent.length < 1);
+    };
+
+    $("#clearRecent").click(function() {
+        storeRecentContent([]);
+        reloadRecent();
+    });
 
     var showAlert = function(message, details) {
         var alertElement = $("#alert");
@@ -629,8 +702,10 @@
         updateDownloadUrl(contentId, url, data);
         updateFromResponse(data, response);
 
-        loadHistory(data.id);
+        putRecent(idType, contentId);
+        reloadRecent();
 
+        loadHistory(data.id);
       }).fail(function(data, status, response) {
         showAlert("Get failed", data.responseJSON);
       });
@@ -662,6 +737,10 @@
       }).success(function(data, status, response) {
         updateDownloadUrl(contentId, url, data);
         updateFromResponse(data, response);
+
+        putRecent(idType, contentId);
+        reloadRecent();
+
         loadHistory(data.id);
       }).fail(function(data, status, response) {
         showAlert("Update failed", data.responseJSON);
@@ -690,14 +769,19 @@
         updateDownloadUrl(contentId, url, data);
         updateFromResponse(data, response);
         $("#contentId").val(data.id);
+
+        putRecent("contentid", data.id);
+        reloadRecent();
+
         loadHistory(data.id);
       }).fail(function(data, status, response) {
         showAlert("Creation failed", data.responseJSON);
       });
     });
 
-
-
+    updateAuthenticationButton();
+    updateActionButtons();
+    reloadRecent();
 
 </script>
 </body>

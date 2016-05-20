@@ -410,7 +410,10 @@
     </div>
 </form>
 <script>
-    var baseUrl = window.location.protocol + "//" + window.location.host;
+    // Crappy way of supporting both ACE and Polopoly
+    var servicePath = "ace" == window.location.pathname.split("/")[1] ? "ace" : "onecms";
+
+    var baseUrl = window.location.protocol + "//" + window.location.host + "/" + servicePath;
 
     var cm = CodeMirror.fromTextArea($("#data").get(0), {name: "javascript", json: true, lineNumbers: true});
 
@@ -531,7 +534,7 @@
       };
       $.ajax({
         type: 'POST',
-        url: baseUrl + "/onecms/security/token",
+        url: baseUrl + "/security/token",
         data: JSON.stringify(body),
         headers: {
             "Content-Type":"application/json; charset=utf-8"
@@ -595,7 +598,7 @@
     var loadHistory = function(contentId) {
       $("#historyContainer").hide();
       $("#compare").off("click");
-      var historyUrl = baseUrl + "/onecms/content/contentid/" + contentId + "/history";
+      var historyUrl = baseUrl + "/content/contentid/" + contentId + "/history";
       var token = $("#token").val();
       $.getJSON({
         type: 'GET',
@@ -634,8 +637,8 @@
           var contentId1 = checkedInputs.first().data("contentid");
           var contentId2 = checkedInputs.last().data("contentid");
 
-          var url1 = baseUrl + "/onecms/content/contentid/" + contentId1;
-          var url2 = baseUrl + "/onecms/content/contentid/" + contentId2;
+          var url1 = baseUrl + "/content/contentid/" + contentId1;
+          var url2 = baseUrl + "/content/contentid/" + contentId2;
 
           $.getJSON({
             type: 'GET',
@@ -691,7 +694,7 @@
         return;
       }
       var idType = $("#idType").val();
-      var url = baseUrl + "/onecms/content/" + idType + "/" + contentId;
+      var url = baseUrl + "/content/" + idType + "/" + contentId;
       $.getJSON({
         type: 'GET',
         url: url,
@@ -724,7 +727,7 @@
         return;
       }
       var idType = $("#idType").val();
-      var url = baseUrl + "/onecms/content/" + idType + "/" + contentId;
+      var url = baseUrl + "/content/" + idType + "/" + contentId;
       $.ajax({
         type: 'PUT',
         url: url,
@@ -756,7 +759,7 @@
       }
       $.ajax({
         type: 'POST',
-        url: baseUrl + "/onecms/content",
+        url: baseUrl + "/content",
         data: cm.getDoc().getValue(),
         headers: {
             "X-Auth-Token": token,

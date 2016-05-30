@@ -4,7 +4,7 @@
     <meta charset=utf-8/>
     <title>Content API Explorer</title>
     <link rel="stylesheet" type="text/css" media="screen"
-          href="https://cdnjs.cloudflare.com/ajax/libs/foundation/6.2.1/foundation-flex.css"/>
+          href="https://cdnjs.cloudflare.com/ajax/libs/foundation/6.2.3/foundation-flex.css"/>
     <link rel="stylesheet" type="text/css" media="screen"
           href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.2/css/font-awesome.min.css"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.14.2/codemirror.min.css">
@@ -12,18 +12,47 @@
             integrity="sha256-a23g1Nt4dtEYOj7bR+vTu7+T8VP13humZFBJNIYoEJo=" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/foundation/6.2.1/foundation.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/foundation/6.2.3/foundation.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/foundation/6.2.3/plugins/foundation.dropdown.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.14.2/codemirror.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.14.2/addon/display/placeholder.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.14.2/mode/javascript/javascript.min.js"></script>
 
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jsondiffpatch/0.1.43/jsondiffpatch.min.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jsondiffpatch/0.1.43/jsondiffpatch-formatters.min.js"></script>
+    <script type="text/javascript"
+            src="https://cdnjs.cloudflare.com/ajax/libs/jsondiffpatch/0.1.43/jsondiffpatch.min.js"></script>
+    <script type="text/javascript"
+            src="https://cdnjs.cloudflare.com/ajax/libs/jsondiffpatch/0.1.43/jsondiffpatch-formatters.min.js"></script>
 
     <style>
-        body {
-        padding-top: 20px;
+        .row {
+        max-width: none;
         }
+        .top-bar {
+        margin-bottom: 20px;
+        }
+        .top-bar input {
+        display: inline-block;
+        margin-bottom: 0;
+        }
+        .top-bar input[type="radio"] {
+        margin-right: .2rem;
+        }
+        .top-bar-right .input-group {
+        display: inline-block;
+        width: auto;
+        }
+        legend {
+        color: #999;
+        font-size: 14px;
+        font-weight: bold;
+        text-transform: uppercase;
+        }
+        .left-col fieldset {
+        border-bottom: 1px solid #E9E9E9;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        }
+
         .CodeMirror {
         height: auto;
         margin-bottom: 20px;
@@ -217,7 +246,6 @@
         }
 
 
-
         .jsondiffpatch-annotated-delta {
         font-family: 'Bitstream Vera Sans Mono', 'DejaVu Sans Mono', Monaco, Courier, monospace;
         font-size: 12px;
@@ -267,77 +295,63 @@
     </style>
 </head>
 <body>
+<div class="top-bar">
+    <div class="float-left">
+        <ul class="menu">
+            <li style="padding-right: 1rem;"><input id="contentId" type="text"
+                                                    placeholder="policy:1.116, PolopolyPost.d"
+                                                    title="Content id or external id"></li>
+            <li>
+                <input type="radio" name="idType" value="contentid" id="idTypeContentId" checked><label
+                    for="idTypeContentId">Content id</label>
+                <input type="radio" name="idType" value="externalid" id="idTypeExternalId"><label
+                    for="idTypeExternalId">External id</label>
+            </li>
+            <li style="padding-right: 1rem;"><input id="variant" type="text"
+                                                    placeholder="Variant"
+                                                    title="Variant"></li>
+            <li>
+                <button id="get" disabled type="button" class="button" title="Get content">GET</button>
+            </li>
+        </ul>
+    </div>
+    <div class="float-right">
+        <ul class="menu align-right">
+            <li style="padding-right: 1rem">
+                <button id="authenticate" type="button" class="button" disabled data-toggle="login-dropdown"
+                        title="Aquire authentication token">
+                    Authenticate
+                </button>
+            </li>
+            <li><input id="token" type="text" placeholder="No current token" readonly
+                       title="Authentication token"></li>
+        </ul>
+
+
+        <div class="dropdown-pane" id="login-dropdown" data-dropdown data-hover="true" data-hover-pane="true"
+             data-auto-focus="true">
+            <form>
+                <div class="row">
+                    <div class="columns">
+                        <label>Username
+                            <input id="username" type="text" placeholder="Username" title="Username">
+                        </label>
+                    </div>
+                    <div class="columns">
+                        <label>Password
+                            <input id="password" type="password" placeholder="Password" title="Password">
+                        </label>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 <form>
     <div class="row">
-        <div class="medium-4 small-12 columns">
+        <div class="large-3 medium-4 small-12 columns left-col">
             <div class="row">
-                <div class="medium-6 small-12 columns">
-                    <input id="username" type="text" placeholder="Username" title="Username">
-                </div>
-                <div class="medium-6 small-12 columns">
-                    <input id="password" type="password" placeholder="Password" title="Password">
-                </div>
-            </div>
-            <div class="row">
-                <div class="medium-12 columns input-group">
-                    <div class="input-group-button">
-                        <button id="authenticate" type="button" class="button" disabled
-                                title="Aquire authentication token">
-                            Authenticate
-                        </button>
-                    </div>
-                    <input id="token" type="text" class="input-group-field" placeholder="No current token" readonly
-                           title="Authentication token">
-                </div>
-            </div>
-            <div class="row">
-                <fieldset id="recentContainer" class="medium-12 columns fieldset">
-                    <legend>Recent content</legend>
-                    <p class="empty-message subheader text-center">No recent content</p>
-                    <ul id="recent" class="no-bullet"></ul>
-                    <button id="clearRecent" disabled type="button" class="expanded button"
-                            title="Clear list of recent content">
-                        Clear recent
-                    </button>
-                </fieldset>
-            </div>
-            <div class="row">
-                <div class="medium-4 columns">
-                    <select id="idType" title="Content id type">
-                        <option value="contentid">Content id</option>
-                        <option value="externalid">External id</option>
-                    </select>
-                </div>
-                <div class="medium-8 columns">
-                    <input id="contentId" type="text"
-                           placeholder="policy:1.116, PolopolyPost.d"
-                           title="Content id or external id">
-                </div>
-            </div>
-            <div class="row">
-                <div class="medium-12 columns expanded button-group">
-                    <button id="get" disabled type="button" class="button" title="Get content">GET</button>
-                    <button id="put" disabled type="button" class="button"
-                            title="Update content with JSON data below">
-                        PUT
-                    </button>
-                </div>
-            </div>
-            <div class="row">
-                <div class="medium-12 columns">
-                    <input id="etag" title="ETag" type="text" placeholder="No current ETag" readonly>
-                </div>
-            </div>
-            <div class="row">
-                <div class="medium-12 columns">
-                    <button id="post" disabled type="button" class="expanded button"
-                            title="Create a new content from JSON data below">
-                        POST (as new content)
-                    </button>
-                </div>
-            </div>
-            <div class="row">
-                <fieldset id="aspectsContainer" style="display: none" class="medium-12 columns fieldset">
+                <fieldset id="aspectsContainer" style="display: none" class="medium-12 columns">
                     <legend>Aspects</legend>
                     <div class="row">
                         <div class="medium-12 columns expanded button-group">
@@ -360,7 +374,7 @@
                 </fieldset>
             </div>
             <div class="row">
-                <fieldset id="historyContainer" style="display: none" class="medium-12 columns fieldset">
+                <fieldset id="historyContainer" style="display: none" class="medium-12 columns">
                     <legend>History</legend>
                     <button id="compare" disabled type="button" class="expanded button"
                             title="Compare selected versions">
@@ -369,8 +383,19 @@
                     <ol reversed id="history" class="history"></ol>
                 </fieldset>
             </div>
+            <div class="row">
+                <fieldset id="recentContainer" class="medium-12 columns">
+                    <legend>Recent content</legend>
+                    <p class="empty-message subheader text-center">No recent content</p>
+                    <ul id="recent" class="no-bullet"></ul>
+                    <button id="clearRecent" disabled type="button" class="expanded button"
+                            title="Clear list of recent content">
+                        Clear
+                    </button>
+                </fieldset>
+            </div>
         </div>
-        <div class="medium-8 small-12 columns">
+        <div class="large-9 medium-8 small-12 columns">
             <div class="row">
                 <div class="medium-12 columns">
                     <div id="alert" class="alert callout" style="display: none" data-closable>
@@ -382,15 +407,36 @@
                 </div>
             </div>
             <div class="row">
-                <div id="getUrlContainer" class="medium-12 columns input-group">
-                    <input id="getUrl" type="text" class="input-group-field" onClick="this.select()"
-                           placeholder="No current url" readonly>
-                    <div class="input-group-button">
-                        <a id="download" class="disabled button"
-                           title="Download content data as JSON">
-                            Download
-                        </a>
+                <div class="medium-12 columns">
+                    <div class="row">
+                        <div class="columns">
+                            <input id="etag" title="ETag" type="text" placeholder="No current ETag" readonly>
+                        </div>
+                        <div class="shrink columns">
+                            <button id="put" disabled type="button" class="button"
+                                    title="Update content with JSON data below">
+                                PUT
+                            </button>
+                        </div>
+                        <div class="shrink columns">
+                            <button id="post" disabled type="button" class="expanded button"
+                                    title="Create a new content from JSON data below">
+                                POST (as new content)
+                            </button>
+                        </div>
                     </div>
+                </div>
+            </div>
+            <div id="getUrlContainer" class="row">
+                <div class="columns">
+                    <input id="getUrl" type="text" onClick="this.select()"
+                           placeholder="No current url" readonly>
+                </div>
+                <div class="shrink columns">
+                    <a id="download" class="disabled button"
+                       title="Download content data as JSON">
+                        Download
+                    </a>
                 </div>
             </div>
             <div class="row">
@@ -417,9 +463,18 @@
 
     var cm = CodeMirror.fromTextArea($("#data").get(0), {name: "javascript", json: true, lineNumbers: true});
 
-    var getContent = function(idType, contentId) {
-        $("#idType").val(idType);
+    var setIdType = function(idType) {
+       $("input:radio[name=idType][value=" + idType + "]").prop('checked', true);
+    };
+
+    var getIdType = function() {
+       return $("input:radio[name=idType]:checked").val();
+    };
+
+    var getContent = function(idType, contentId, variant) {
+        setIdType(idType);
         $("#contentId").val(contentId).change();
+        $("#variant").val(variant).change();
         $("#get").click();
     };
 
@@ -431,7 +486,7 @@
         var tokenElement = $("#token");
         var fetchContent = function() {
             tokenElement.off("change", fetchContent);
-            getContent("contentid", "policy:1.116");
+            getContent("contentid", "policy:1.116", "");
         };
         tokenElement.on("change", fetchContent);
         $("#authenticate").click();
@@ -473,15 +528,15 @@
         $.cookie(RECENT_COOKIE_NAME, JSON.stringify(recentContent));
     };
 
-    var putRecent = function(idType, contentId) {
-        var newRecentId = {"type": idType, "id": contentId};
+    var putRecent = function(idType, contentId, variant) {
+        var newRecentId = {"type": idType, "id": contentId, "variant": variant};
         var recentContent = getRecentContent();
 
         // TODO: Ugly indexOf check. Didn't get either native or jQuery version to work
         var index = -1;
         var i = 0;
         $.each(recentContent, function() {
-          if (this.id == contentId) {
+          if (this.id == contentId && (!this.variant || this.variant == variant)) {
             index = i;
           }
           i++;
@@ -501,11 +556,11 @@
         var recentContent = getRecentContent();
         $.each(recentContent, function() {
           var entry = this;
-          recent.append("<li><a href='#' data-id='" + entry.id + "' data-type='" + entry.type + "'>" + entry.id + "</a></li>");
+          recent.append("<li><a href='#' data-id='" + entry.id + "' data-type='" + entry.type + "' data-variant='" + entry.variant + "'>" + entry.id + (entry.variant ? " ("  + entry.variant + ")": "") + "</a></li>");
         });
         recent.find("a").click(function(e) {
           var link = $(this);
-          getContent(link.data("type"), link.data("id"));
+          getContent(link.data("type"), link.data("id"), link.data("variant"));
           e.preventDefault();
           return;
         });
@@ -693,8 +748,12 @@
         alert("Must specify content id.");
         return;
       }
-      var idType = $("#idType").val();
+      var idType = getIdType();
+      var variant = $("#variant").val();
       var url = baseUrl + "/content/" + idType + "/" + contentId;
+      if (variant) {
+        url += "?variant=" + variant;
+      }
       $.getJSON({
         type: 'GET',
         url: url,
@@ -705,7 +764,7 @@
         updateDownloadUrl(contentId, url, data);
         updateFromResponse(data, response);
 
-        putRecent(idType, contentId);
+        putRecent(idType, contentId, variant);
         reloadRecent();
 
         loadHistory(data.id);
@@ -726,7 +785,7 @@
         alert("Must specify content id.");
         return;
       }
-      var idType = $("#idType").val();
+      var idType = getIdType();
       var url = baseUrl + "/content/" + idType + "/" + contentId;
       $.ajax({
         type: 'PUT',
@@ -785,6 +844,10 @@
     updateAuthenticationButton();
     updateActionButtons();
     reloadRecent();
+
+    $(document).foundation();
+
+
 
 </script>
 </body>

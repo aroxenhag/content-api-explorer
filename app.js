@@ -9,19 +9,19 @@
     var cm = CodeMirror.fromTextArea($("#data").get(0), {name: "javascript", json: true, lineNumbers: true});
 
     var setIdType = function(idType) {
-       $("input:radio[name=idType][value=" + idType + "]").prop('checked', true);
-    };
+     $("input:radio[name=idType][value=" + idType + "]").prop('checked', true);
+   };
 
-    var getIdType = function() {
-       return $("input:radio[name=idType]:checked").val();
-    };
+   var getIdType = function() {
+     return $("input:radio[name=idType]:checked").val();
+   };
 
-    var getContent = function(idType, contentId, variant) {
-        setIdType(idType);
-        $("#contentId").val(contentId).change();
-        $("#variant").val(variant).change();
-        $("#get").click();
-    };
+   var getContent = function(idType, contentId, variant) {
+    setIdType(idType);
+    $("#contentId").val(contentId).change();
+    $("#variant").val(variant).change();
+    $("#get").click();
+  };
 
     // DEV SHORTCUT
     $(document).keydown(function(event) {
@@ -30,8 +30,8 @@
 
         var tokenElement = $("#token");
         var fetchContent = function() {
-            tokenElement.off("change", fetchContent);
-            getContent("contentid", "policy:1.116", "");
+          tokenElement.off("change", fetchContent);
+          getContent("contentid", "policy:1.116", "");
         };
         tokenElement.on("change", fetchContent);
         $("#authenticate").click();
@@ -64,33 +64,33 @@
 
     var RECENT_COOKIE_NAME = "content-api-explorer-recent";
     var getRecentContent = function(callback) {
-        if (window.chrome && chrome.storage && chrome.storage.local) {
-          chrome.storage.local.get("recent", function(items) {
-            console.log("items", items);
-            console.log("items.recent", items.recent);
-            console.log("$.isEmptyObject(items)", $.isEmptyObject(items));
-            var recentContent = $.isEmptyObject(items) ? [] : items["recent"];
-            callback(recentContent);
-          });
-        } else {
-          var recentContentCookie = $.cookie(RECENT_COOKIE_NAME);
-          var recentContent = recentContentCookie ? JSON.parse(recentContentCookie) : [];
+      if (window.chrome && chrome.storage && chrome.storage.local) {
+        chrome.storage.local.get("recent", function(items) {
+          console.log("items", items);
+          console.log("items.recent", items.recent);
+          console.log("$.isEmptyObject(items)", $.isEmptyObject(items));
+          var recentContent = $.isEmptyObject(items) ? [] : items["recent"];
           callback(recentContent);
-        }
+        });
+      } else {
+        var recentContentCookie = $.cookie(RECENT_COOKIE_NAME);
+        var recentContent = recentContentCookie ? JSON.parse(recentContentCookie) : [];
+        callback(recentContent);
+      }
     };
 
     var storeRecentContent = function(recentContent) {
-        if (window.chrome && chrome.storage && chrome.storage.local) {
-          chrome.storage.local.set({"recent": recentContent});
-        } else {
-          $.cookie(RECENT_COOKIE_NAME, JSON.stringify(recentContent));
-        }
+      if (window.chrome && chrome.storage && chrome.storage.local) {
+        chrome.storage.local.set({"recent": recentContent});
+      } else {
+        $.cookie(RECENT_COOKIE_NAME, JSON.stringify(recentContent));
+      }
     };
 
     var putRecent = function(idType, contentId, variant) {
-        var newRecentId = {"type": idType, "id": contentId, "variant": variant};
+      var newRecentId = {"type": idType, "id": contentId, "variant": variant};
 
-        getRecentContent(function(recentContent) {
+      getRecentContent(function(recentContent) {
           // TODO: Ugly indexOf check. Didn't get either native or jQuery version to work
           var index = -1;
           var i = 0;
@@ -111,37 +111,37 @@
     };
 
     var reloadRecent = function() {
-        var recent = $("#recent");
-        recent.empty();
+      var recent = $("#recent");
+      recent.empty();
 
-        getRecentContent(function(recentContent) {
-          $.each(recentContent, function() {
-            var entry = this;
-            recent.append("<li><a href='#' data-id='" + entry.id + "' data-type='" + entry.type + "' data-variant='" + entry.variant + "'>" + entry.id + (entry.variant ? " ("  + entry.variant + ")": "") + "</a></li>");
-          });
-          recent.find("a").click(function(e) {
-            var link = $(this);
-            getContent(link.data("type"), link.data("id"), link.data("variant"));
-            e.preventDefault();
-            return;
-          });
-          $("#clearRecent").prop("disabled", recentContent.length < 1);
-          $("#recentContainer .empty-message").toggle(recentContent.length < 1);
+      getRecentContent(function(recentContent) {
+        $.each(recentContent, function() {
+          var entry = this;
+          recent.append("<li><a href='#' data-id='" + entry.id + "' data-type='" + entry.type + "' data-variant='" + entry.variant + "'>" + entry.id + (entry.variant ? " ("  + entry.variant + ")": "") + "</a></li>");
         });
+        recent.find("a").click(function(e) {
+          var link = $(this);
+          getContent(link.data("type"), link.data("id"), link.data("variant"));
+          e.preventDefault();
+          return;
+        });
+        $("#clearRecent").prop("disabled", recentContent.length < 1);
+        $("#recentContainer .empty-message").toggle(recentContent.length < 1);
+      });
     };
 
     $("#clearRecent").click(function() {
-        storeRecentContent([]);
-        reloadRecent();
+      storeRecentContent([]);
+      reloadRecent();
     });
 
     var showAlert = function(message, details) {
-        var alertElement = $("#alert");
-        alertElement.show().find(".message").html("<h4>" + message + "</h4>" + "<pre>" + JSON.stringify(details, null, 2) + "</pre>");
+      var alertElement = $("#alert");
+      alertElement.show().find(".message").html("<h4>" + message + "</h4>" + "<pre>" + JSON.stringify(details, null, 2) + "</pre>");
     };
 
     var hideAlert = function() {
-        $("#alert").css("display", "none");
+      $("#alert").css("display", "none");
     };
 
     $("#authenticate").click(function() {
@@ -154,62 +154,62 @@
         url: baseUrl + "/security/token",
         data: JSON.stringify(body),
         headers: {
-            "Content-Type":"application/json; charset=utf-8"
+          "Content-Type":"application/json; charset=utf-8"
         }
       }).success(function(data) {
-            $("#token").val(data.token).change();
+        $("#token").val(data.token).change();
       }).fail(function(data) {
-            showAlert("Authentication failed", data.responseJSON);
+        showAlert("Authentication failed", data.responseJSON);
       });
     });
 
     var updateDownloadUrl = function(id, url, data) {
-        $("#getUrl").val(url).attr("title", url);
-        var anchor = $("#download");
-        var windowUrl = window.URL || window.webkitURL;
-        var blob = new Blob([JSON.stringify(data, null, 2)], {type : 'application/json'});
-        var url = windowUrl.createObjectURL(blob);
-        anchor.prop('href', url);
-        anchor.prop('download', id + ".json");
-        anchor.removeClass("disabled");
+      $("#getUrl").val(url).attr("title", url);
+      var anchor = $("#download");
+      var windowUrl = window.URL || window.webkitURL;
+      var blob = new Blob([JSON.stringify(data, null, 2)], {type : 'application/json'});
+      var url = windowUrl.createObjectURL(blob);
+      anchor.prop('href', url);
+      anchor.prop('download', id + ".json");
+      anchor.removeClass("disabled");
     };
 
     var updateFromResponse = function(data, response) {
-        $("#etag").val(response.getResponseHeader("ETag")).change();
+      $("#etag").val(response.getResponseHeader("ETag")).change();
 
-        cm.getDoc().setValue(JSON.stringify(data, null, 2));
-        var i = 0;
-        var aspects = $("#aspects");
-        aspects.empty();
-        for (var aspect in data.aspects) {
-          aspects.append("<div><input data-aspect-name='" + aspect + "' checked id='aspect" + i + "' type='checkbox'><label for='aspect" + i + "'>" + aspect + "</label></div>");
-          i++;
-        }
+      cm.getDoc().setValue(JSON.stringify(data, null, 2));
+      var i = 0;
+      var aspects = $("#aspects");
+      aspects.empty();
+      for (var aspect in data.aspects) {
+        aspects.append("<div><input data-aspect-name='" + aspect + "' checked id='aspect" + i + "' type='checkbox'><label for='aspect" + i + "'>" + aspect + "</label></div>");
+        i++;
+      }
 
-        var updateAspects = function() {
-          var tmpData = JSON.parse(JSON.stringify(data));
-          aspects.find("input").each(function() {
-            if (!$(this).prop("checked")) {
-              delete tmpData.aspects[$(this).data("aspect-name")];
-            }
-          });
-          cm.getDoc().setValue(JSON.stringify(tmpData, null, 2));
-        }
-
-        aspects.find("input").change(updateAspects);
-
-        $("#aspectsContainer").show();
-
-        $("#selectAllAspects").click(function() {
-          $("#aspects input").prop("checked", true);
-          updateAspects();
+      var updateAspects = function() {
+        var tmpData = JSON.parse(JSON.stringify(data));
+        aspects.find("input").each(function() {
+          if (!$(this).prop("checked")) {
+            delete tmpData.aspects[$(this).data("aspect-name")];
+          }
         });
-        $("#deselectAllAspects").click(function() {
-          $("#aspects input").prop("checked", false);
-          updateAspects();
-        });
-        $("#data-container").removeClass("collapsed");
-        $("#diff-container").hide();
+        cm.getDoc().setValue(JSON.stringify(tmpData, null, 2));
+      }
+
+      aspects.find("input").change(updateAspects);
+
+      $("#aspectsContainer").show();
+
+      $("#selectAllAspects").click(function() {
+        $("#aspects input").prop("checked", true);
+        updateAspects();
+      });
+      $("#deselectAllAspects").click(function() {
+        $("#aspects input").prop("checked", false);
+        updateAspects();
+      });
+      $("#data-container").removeClass("collapsed");
+      $("#diff-container").hide();
     };
 
     var loadHistory = function(contentId) {
@@ -221,7 +221,7 @@
         type: 'GET',
         url: historyUrl,
         headers: {
-            "X-Auth-Token": token
+          "X-Auth-Token": token
         }
       }).success(function(data, status, response) {
 
@@ -261,42 +261,42 @@
             type: 'GET',
             url: url1,
             headers: {
-                "X-Auth-Token": token
+              "X-Auth-Token": token
             }
           }).success(function(data, status, response) {
             var content1 = data;
 
-              $.getJSON({
-                type: 'GET',
-                url: url2,
-                headers: {
-                    "X-Auth-Token": token
-                }
-              }).success(function(data, status, response) {
-                var content2 = data;
+            $.getJSON({
+              type: 'GET',
+              url: url2,
+              headers: {
+                "X-Auth-Token": token
+              }
+            }).success(function(data, status, response) {
+              var content2 = data;
 
-                var diffpatcher = jsondiffpatch.create({
-                    objectHash: function(obj) {
-                        return obj.name;
-                    },
-                    arrays: {
-                      detectMove: true,
-                      includeValueOnMove: false
-                    },
-                    textDiff: {
-                        minLength: 20
-                    }
-                });
-                var delta = diffpatcher.diff(content2, content1);
-                $("#diff").html(jsondiffpatch.formatters.html.format(delta, content2));
-                $("#data-container").addClass("collapsed");
-                $(".data-container-overlay").click(function() {
-                  $("#data-container").removeClass("collapsed");
-                });
-                $("#diff-container").show();
-              }).fail(function(data, status, response) {
-                showAlert("Get failed", data.responseJSON);
+              var diffpatcher = jsondiffpatch.create({
+                objectHash: function(obj) {
+                  return obj.name;
+                },
+                arrays: {
+                  detectMove: true,
+                  includeValueOnMove: false
+                },
+                textDiff: {
+                  minLength: 20
+                }
               });
+              var delta = diffpatcher.diff(content2, content1);
+              $("#diff").html(jsondiffpatch.formatters.html.format(delta, content2));
+              $("#data-container").addClass("collapsed");
+              $(".data-container-overlay").click(function() {
+                $("#data-container").removeClass("collapsed");
+              });
+              $("#diff-container").show();
+            }).fail(function(data, status, response) {
+              showAlert("Get failed", data.responseJSON);
+            });
 
           }).fail(function(data, status, response) {
             showAlert("Get failed", data.responseJSON);
@@ -332,7 +332,7 @@
         type: 'GET',
         url: url,
         headers: {
-            "X-Auth-Token": token
+          "X-Auth-Token": token
         }
       }).success(function(data, status, response) {
         updateDownloadUrl(contentId, url, data);
@@ -366,9 +366,9 @@
         url: url,
         data: cm.getDoc().getValue(),
         headers: {
-            "X-Auth-Token": token,
-            "Content-Type":"application/json; charset=utf-8",
-            "If-Match":$("#etag").val()
+          "X-Auth-Token": token,
+          "Content-Type":"application/json; charset=utf-8",
+          "If-Match":$("#etag").val()
         }
       }).success(function(data, status, response) {
         updateDownloadUrl(contentId, url, data);
@@ -395,8 +395,8 @@
         url: baseUrl + "/content",
         data: cm.getDoc().getValue(),
         headers: {
-            "X-Auth-Token": token,
-            "Content-Type":"application/json; charset=utf-8"
+          "X-Auth-Token": token,
+          "Content-Type":"application/json; charset=utf-8"
         }
       }).success(function(data, status, response) {
         var location = response.getResponseHeader("Location");
@@ -420,4 +420,4 @@
     reloadRecent();
 
     $(document).foundation();
-console.log("loaded...");
+    console.log("loaded...");

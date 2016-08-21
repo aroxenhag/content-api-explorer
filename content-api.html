@@ -3,15 +3,21 @@
 <head>
     <meta charset=utf-8/>
     <title>Content API Explorer</title>
+
+<!--
     <link rel="stylesheet" type="text/css" media="screen" href="css/foundation/6.2.3/foundation-flex.css"/>
+-->
+    <link rel="stylesheet" href="semantic/semantic.min.css">
     <link rel="stylesheet" type="text/css" media="screen" href="css/font-awesome-4.6.3/css/font-awesome.min.css"/>
     <link rel="stylesheet" href="css/codemirror/5.14.2/codemirror.min.css">
 
     <script src="js/jquery/2.2.3/jquery-2.2.3.min.js"></script>
     <script src="js/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
 
+<!--
     <script src="js/foundation/6.2.3/foundation.js"></script>
     <script src="js/foundation/6.2.3/foundation.dropdown.js"></script>
+-->
 
     <script src="js/codemirror/5.14.2/codemirror.min.js"></script>
     <script src="js/codemirror/5.14.2/placeholder.min.js"></script>
@@ -24,7 +30,7 @@
 html, body {
     overflow-y: visible;
 }
-    
+
         .row {
         max-width: none;
         }
@@ -298,8 +304,41 @@ html, body {
     </style>
 </head>
 <body>
-<div class="top-bar">
-    <div class="float-left">
+<div class="ui fixed menu">
+    <div class="ui container">
+
+<div class="ui form item">
+  <div class="inline fields">
+    <div class="field">
+      <input id="contentId" type="text" placeholder="policy:1.116, PolopolyPost.d"
+                                                    title="Content id or external id">
+    </div>
+    <div class="field">
+      <div class="ui radio checkbox">
+        <input type="radio" name="idType" value="contentid" id="idTypeContentId" checked tabindex="0" class="hidden"><label
+                    for="idTypeContentId">Content id</label>
+      </div>
+    </div>
+    <div class="field">
+      <div class="ui radio checkbox">
+        <input type="radio" name="idType" value="externalid" id="idTypeExternalId" tabindex="0" class="hidden"><label
+                    for="idTypeExternalId">External id</label>
+      </div>
+    </div>
+
+    <div class="field">
+      <input id="variant" type="text"
+                                                    placeholder="Variant"
+                                                    title="Variant">
+    </div>
+    <div class="field">
+      <button id="get" disabled type="button" class="ui button" title="Get content">GET</button>
+    </div>
+  </div>
+</div>
+
+<!--
+    <div class="item">
         <ul class="menu">
             <li style="padding-right: 1rem;"><input id="contentId" type="text"
                                                     placeholder="policy:1.116, PolopolyPost.d"
@@ -318,7 +357,9 @@ html, body {
             </li>
         </ul>
     </div>
-    <div class="float-right">
+-->
+
+    <div class="right item">
         <ul class="menu align-right">
             <li style="padding-right: 1rem">
                 <button id="authenticate" type="button" class="button" disabled
@@ -347,6 +388,7 @@ html, body {
                 </div>
             </form>
         </div>
+    </div>
     </div>
 </div>
 <form>
